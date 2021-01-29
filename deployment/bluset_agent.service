@@ -1,0 +1,13 @@
+[Unit]
+Description=bluset agent service
+After=network.target
+
+[Service]
+User=root
+Type=simple
+WorkingDirectory=/root/bluset_agent
+ExecStart=/usr/bin/python3 main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
