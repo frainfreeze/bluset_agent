@@ -10,7 +10,7 @@ setup:
 	sudo systemctl enable $(APP_NAME).service
 	sudo systemctl daemon-reload
 	@echo "Seting up reverse proxy..."
-	sudo ln -s deployment/$(APP_NAME).conf /etc/nginx/sites-enabled/
+	sudo cp deployment/$(APP_NAME).conf /etc/nginx/sites-enabled/default
 	sudo service nginx restart
 
 run:
