@@ -3,6 +3,7 @@ import sys
 import json
 import io
 import base64
+import datetime
 
 import requests
 
@@ -10,11 +11,51 @@ from flask import Flask, send_from_directory, jsonify
 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
+from requests.api import get
+
+from apscheduler.schedulers.background import BackgroundScheduler
 
 cwd = os.getcwd()
 app = Flask(__name__, static_url_path=cwd)
 LOG_FILE = "/var/log/nginx/access.log"
 FILE_NAME = "stats_report"
+
+MINUTE =  [0,5,10,15,20,25,30,35,40,45,50,55]
+TMP_RPM = [0,0,0,0,0,0,0,0,0,0,0,0]
+TMP_LATENCY = [0,0,0,0,0,0,0,0,0,0,0,0]
+
+def get_rpm():
+    # TODO: this is not valid rpm, but rather just active conections used as mock data!!!
+    r = requests.get("http://127.0.0.1/nginx_status")
+    if r.status_code == 200:
+        rpm = int(r.text.partition('\n')[0].rsplit(': ', 1)[1])
+    else:
+        rpm = 0
+
+def get_latency():
+    # TODO: this is not valid latency, treat as mock data!
+    start = time.time()
+    r = requests.get(f"http://google.com")
+    roundtrip = time.time() - start 
+    return int(roundtrip*1000.0)
+
+def update_values():
+    now = datetime.datetime.now()
+    MINUTE.insert(0, now.minute)
+    MINUTE.pop()
+
+    rpm = get_rpm()
+    TMP_RPM.insert(0, rpm)
+    TMP_RPM.pop()
+
+    latency = get_latency()
+    TMP_LATENCY.insert(0, latency)
+    TMP_LATENCY.pop()
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=update_values, trigger="interval", seconds=300)
+scheduler.start()
 
 # fix for goacess debian package bug https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=934121
 @app.route("/fonts/<path:path>")
@@ -60,26 +101,20 @@ def data_img(x,y):
 @app.route("/stats")
 def mock_stats():
     """ Mock data. Implement me. """
-    rpm_graph = data_img([0,1,2,3,4], [0,0,0,0,0])      
-    latency_graph = data_img([0,1,2,3,4], [1,2,1,3,2])
-
-    # TODO: this is not valid rpm, but rather just active conections used as mock data!!!
-    r = requests.get("http://127.0.0.1/nginx_status")
-    if r.status_code == 200:
-        rpm = int(r.text.partition('\n')[0].rsplit(': ', 1)[1])
-    else:
-        rpm = 0
+    rpm = get_rpm()
+    rpm_graph = data_img(MINUTE, TMP_RPM)      
+    latency_graph = data_img(MINUTE, TMP_LATENCY)
 
     data = {
         'rpm': {
-            'time' : [0,1,2,3,4],
-            'data' : [0,0,0,0,0],
+            'time' : MINUTE,
+            'data' : TMP_RPM,
             'current' : rpm,
             'graph': rpm_graph
         },
         'latency': {
-            'time' : [0,1,2,3,4],
-            'data' : [4,6,2,5,4],
+            'time' : MINUTE,
+            'data' : TMP_LATENCY,
             'graph': latency_graph
         }
     }
