@@ -20,9 +20,9 @@ app = Flask(__name__, static_url_path=cwd)
 LOG_FILE = "/var/log/nginx/access.log"
 FILE_NAME = "stats_report"
 
-MINUTE =  [0,5,10,15,20,25,30,35,40,45,50,55]
-TMP_RPM = [0,0,0,0,0,0,0,0,0,0,0,0]
-TMP_LATENCY = [0,0,0,0,0,0,0,0,0,0,0,0]
+MINUTE =  [0,10,20,30,40,50]
+TMP_RPM = [1,1,1,1,1,1]
+TMP_LATENCY = [1,1,1,1,1,1]
 
 def get_rpm():
     # TODO: this is not valid rpm, but rather just active conections used as mock data!!!
@@ -54,7 +54,7 @@ def update_values():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=update_values, trigger="interval", seconds=300)
+scheduler.add_job(func=update_values, trigger="interval", seconds=600)
 scheduler.start()
 
 # fix for goacess debian package bug https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=934121
