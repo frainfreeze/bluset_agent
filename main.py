@@ -4,7 +4,7 @@ import json
 import io
 import base64
 import datetime
-
+import time
 import requests
 
 from flask import Flask, send_from_directory, jsonify
@@ -31,6 +31,7 @@ def get_rpm():
         rpm = int(r.text.partition('\n')[0].rsplit(': ', 1)[1])
     else:
         rpm = 0
+    return rpm
 
 def get_latency():
     # TODO: this is not valid latency, treat as mock data!
