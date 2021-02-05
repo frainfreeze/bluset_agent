@@ -2,7 +2,7 @@ APP_NAME=bluset_agent
 
 setup:
 	@echo "Installing packages..."
-	sudo apt install nginx python3 python3-pip goaccess geoip-database
+	sudo apt install -y nginx python3 python3-pip goaccess geoip-database
 	sudo pip3 install flask matplotlib requests apscheduler
 	@echo "Seting up system services..."
 	sudo cp deployment/$(APP_NAME).service /etc/systemd/system/$(APP_NAME).service
